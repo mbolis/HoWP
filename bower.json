@@ -1,0 +1,26 @@
+{
+  "name": "HoWP",
+  "version": "0.0.0",
+  "homepage": "https://github.com/mbolis/HoWP",
+  "authors": [
+    "Marco bolis <mbolis1984@gmail.com>"
+  ],
+  "keywords": [
+    "game",
+    "html5",
+    "heroes"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "./lib",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "crafty": "~0.6.3"
+  }
+}
