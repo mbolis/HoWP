@@ -1,0 +1,26 @@
+{
+  "name": "HoWP",
+  "version": "0.1.0",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mbolis/HoWP"
+  },
+  "keywords": [
+    "game",
+    "html5",
+    "heroes"
+  ],
+  "author": "Marco Bolis <mbolis1984@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mbolis/HoWP/issues"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-git": "~0.3.3"
+  },
+  "gitDependencies": {
+    "craftyjs": ["https://github.com/craftyjs/Crafty", "0.6.3"]
+  }
+}
