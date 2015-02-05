@@ -31,6 +31,17 @@ Ajax = {
 			error : function(fn) {
 				promise._error = fn;
 				return promise;
+			},
+			_error : function(err) {
+				if (typeof err === 'number') {
+					if (err >= 500) {
+						console.log('Server error : ', err);
+					} else if (err >= 400) {
+						console.log('Not available : ', err);
+					}
+				} else {
+					console.log('Malformed data\n', err);
+				}
 			}
 		}
 

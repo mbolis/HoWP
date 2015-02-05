@@ -1,6 +1,6 @@
 {
 	"name" : "new hope",
-	"legend" : {
+	"palette" : {
 		"M" : { "name" : "mountain", "color" : "gray" },
 		"h" : { "name" : "hills", "color" : "silver" },
 		"," : { "name" : "grass", "color" : "green" },

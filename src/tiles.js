@@ -1,30 +1,12 @@
 Crafty.c('_GridRoot', {
 	init : function() {
-		this.requires('2D, Multiway')
-			.multiway({ UP_ARROW : 90, RIGHT_ARROW : 180, DOWN_ARROW : -90, LEFT_ARROW : 0 })
+		this.requires('2D');
 	}
 })
 
 Grid = {
 	root : undefined,
 	count : 0,
-	_startDrag : function(e) {
-		this._dragFrom = { x : e.clientX, y : e.clientY };
-	},
-	_dragging : function(e) {
-		var from = this._dragFrom;
-		var to = { x : e.clientX, y : e.clientY };
-
-		var dx = to.x - from.x;
-		this.x -= dx;
-		Grid.root.x += dx;
-
-		var dy = to.y - from.y;
-		this.y -= dy;
-		Grid.root.y += dy;
-
-		this._dragFrom = to;
-	}
 }
 
 Crafty.c('Grid', {
@@ -41,7 +23,7 @@ Crafty.c('Grid', {
 		});
 	
 		this._gridId = '_grid' + (++Grid.count);
-		this._tileCID = this._gridId + ':Tile';
+		this._tileCID = this._gridId + '::Tile';
 		Crafty.c(this._tileCID, {
 			init : function() {
 				this.requires('Tile').place(grid);
@@ -54,11 +36,6 @@ Crafty.c('Grid', {
 			if (c && c.has('Tile')) {
 				c.w = this._unit._w;
 				c.h = this._unit._h;
-
-				c._wasDraggable = c.has('Draggable');
-				c.requires('Draggable')
-					.bind('StartDrag', Grid._startDrag)
-					.bind('Dragging', Grid._dragging);
 			}
 			return this;
 		}
@@ -67,11 +44,6 @@ Crafty.c('Grid', {
 		this.detach = function(c) {
 			dtc.call(this, c);
 			if (c && c.has('Tile')) {
-				c.unbind('StartDrag', Grid._startDrag)
-					.unbind('Dragging', Grid._dragging);
-				if (c._wasDraggable) {
-					c.removeComponent('Draggable');
-				}
 			}
 			return this;
 		}
@@ -134,19 +106,39 @@ Crafty.c('Grid', {
 		this._tiles = {};
 	},
 	tileAt : function(row, col) {
-		var tiles = this._tiles;
-		var coords = row + ':' + col;
-		var tile = tiles[coords];
-		if (!tile) {
-			tile = Crafty.e(this._tileCID).place(this, row, col);
+		var coords = '@(' + row + ':' + col + ')';
+		var tile = Crafty(this._tileCID + ' ' + coords).get(); // TODO: manage multiple returns
+		if (!tile.length) {
+			tile = Crafty.e(this._tileCID, coords, '!')//.at(row, col);
 		}
 		return tile;
 	}
 });
 
+var re_bang = /@\(([^\)]*)\)/;
+var re_args = /:/g;
+
+Crafty.c('!', {
+	init : function() {
+		var m;
+		for (var c in this.__c) {
+			if (m = re_bang.exec(c)) {
+				var args = m[1].split(re_args);
+				this['@!'].apply(this, args);
+			}
+		}
+		this.removeComponent('!');
+	}
+});
+
+
 Crafty.c('Tile', {
 	_row : 0,
 	_col : 0,
+	'@!' : function(r, c) {
+		this.y = this._parent._y + (this._row = +r) * this._h;
+		this.x = this._parent._x + (this._col = +c) * this._w;
+	},
 	init : function() {
 		this.requires('2D')
 
@@ -169,10 +161,8 @@ Crafty.c('Tile', {
 				enumerable : true,
 				get : function() { return this._row },
 				set : function(r) {
-					var tiles = this._parent._tiles;
-					var coords = this._row + ':' + this._col;
-					if (tiles[coords] == this) delete tiles[coords];
-					tiles[r + ':' + this._col] = this;
+					this.removeComponent('@('+this._row+':'+this._col+')')
+						.addComponent('@('+r+':'+this._col+')');
 
 					this._row = r;
 					this.y = this._parent._y + r * this._h;
@@ -184,10 +174,8 @@ Crafty.c('Tile', {
 				enumerable : true,
 				get : function() { return this._col },
 				set : function(c) {
-					var tiles = this._parent._tiles;
-					var coords = this._row + ':' + this._col;
-					if (tiles[coords] == this) delete tiles[coords];
-					tiles[this._row + ':' + c] = this;
+					this.removeComponent('@('+this._row+':'+this._col+')')
+						.addComponent('@('+this._row+':'+c+')');
 
 					this._col = c;
 					this.x = this._parent._x + c * this._w;
@@ -212,99 +200,80 @@ Crafty.c('Tile', {
 		return { row : this.row, col : this.col }
 	}
 });
-/*
-Tiles = {
-	unit : { width : 32, height : 32 },
-	default : {
-		color : 'rgba(0,0,0,0)'
-	},
-	load : function(url, success, error) {
-		Ajax.get(url).success(function(data) {
-			var name = (data.name || url).trim();
-			var codename = name.replace(/\s/g, '_');
-			var rows = data.rows || data.tiles.length;
-			var cols = data.cols;
-			if (!cols) {
-				// initialize `cols` to largest row
-				for (var i = 0; i < rows; i++) {
-					cols = Math.max(cols, tiles[i].length);
-				}
-			}
-			var unit = {
-				width : Tiles.unit.width,
-				height : Tiles.unit.height
-			}
-			var default = data.default;
-			if (default) {
-				if (default.width) {
-					delete deafult.width;
-					unit.width = default.width;
-				}
-				if (default.height) {
-					delete default.height;
-					unit.height = default.height;
-				}
-			}
 
-			var palette = data.palette;
-			for (var k in palette) {
-				if (palette.hasOwnProperty(k)) {
-					var tile = palette[k];
-					Crafty.c('Tiles:' + codename + '.' + k, {
-						name : tile.name,
-						init : function() {
-							this.requires('Tile');
-							if (tile.color) {
-								this.requires('Color,Canvas').color(tile.color);
-							}
-						}
-					});
-				}
-			}
-
-			Crafty.c('Tiles:' + codename, {
-				name : name,
-				description : data.description,
-				rows : rows,
-				cols : cols,
-				unit : unit,
-				palette : palette,
-				tiles : data.tiles,
-				default : default,
-				init : function() {
-					for (var y = 0; y < this.rows; y++) {
-						for (var x = 0; x < this.cols; x++) {
-							var tile = this.tiles[y][x];
-							if (tile) {
-								var e = Crafty.e('Tiles:' + codename + '.' + tile)
-								if (e) {
-									this.attach(e.coord(x, y));
-									e.w = unit.width;
-									e.h = unit.height;
-								}
-							}
-						}
-					}
-				}
-			})
-		}).error(function(err) {
-			if (typeof err === 'number') {
-				if (err >= 500) {
-					console.log('Server error : ', err);
-				} else if (err >= 400) {
-					console.log('Not available : ', err);
-				}
-			} else {
-				console.log('Malformed data\n', err);
-			}
-		});
-	},
-	display : function(mapName) {
-		var codename = name.replace(/\s/g, '_');
-		return Crafty.e('Tiles:' + codename)
+function Map() {}
+Map.prototype.display = function(grid) {
+	var tiles = this.tiles;
+	var rows = this.rows;
+	var cols = this.cols;
+	for (var y = 0; y < rows; y++) {
+		var row = tiles[y];
+		for (var x = 0; x < cols; x++) {
+			var tile = this.palette[row[x]];
+			grid.tileAt(y, x).requires('Canvas,Color').color(tile.color || 'rgba(0,0,0,0)')
+		}
 	}
 }
 
+Tiles = {
+	_maps : {},
+	_palettes : {},
+	load : function(url, success, error) {
+		var map;
+		if (url in Tiles._maps) {
+			map = Tiles._maps[url];
+			if (typeof success === 'function') {
+				success(map);
+			}
+		} else {
+			map = Tiles._maps[url] = new Map;
+			var ajax = Ajax.get(url).success(function(data) {
+				var name = map.name = (data.name || url).trim();
+
+				var tiles = map.tiles = data.tiles;
+
+				var rows = map.rows = data.rows || data.tiles.length;
+				var cols = data.cols;
+				if (typeof cols !== 'number') {
+					cols = 0;
+					// initialize `cols` to largest row
+					for (var i = 0; i < rows; i++) {
+						cols = Math.max(cols, tiles[i].length);
+					}
+				}
+				map.cols = cols;
+
+				var palette = data.palette;
+				if (typeof palette === 'string') {
+					if (paletteUrl in Tiles._palettes) {
+						map.palette = Tiles._palettes[paletteUrl];
+						if (typeof success === 'function') {
+							success(map);
+						}
+					} else {
+						Ajax.get(paletteUrl).success(function(data) {
+							map.palette = data;
+							if (typeof success === 'function') {
+								success(map);
+							}
+						})
+					}
+				} else {
+					map.palette = palette;
+					if (typeof success === 'function') {
+						success(map);
+					}
+				}
+			});
+			if (typeof error === 'function') {
+				ajax.error(error);
+			}
+		}
+		return map;
+	}
+}
+
+/*
 function tileMapDemo() {
 	Crafty.init();
 	Tiles.load('map.json');
@@ -346,17 +315,13 @@ function tileMapDemo() {
 
 function tiledDemo() {
 
-	var colors = ['red', 'green', 'blue'];
-
-	Crafty.init();
-	var xtiles = 10;
-	var ytiles = 10;
+	Crafty.init(600, 400);
+	Crafty.viewport.mouselook(true);
 
 	var grid = Crafty.e('Grid');
-	for (var x = 0; x <= xtiles; x++) {
-		for (var y = 0; y <= ytiles; y++) {
-			var color = Crafty.math.randomElementOfArray(colors);
-			grid.tileAt(y, x).requires('Canvas, Color').color(color);
-		}
-	}
+	Tiles.load('map.json', function(map) {
+		console.log('loading...');
+		map.display(grid);
+		console.log('done.');
+	})
 }
