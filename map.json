@@ -1,13 +1,15 @@
 {
 	"name" : "new hope",
 	"palette" : {
-		"M" : { "name" : "mountain", "color" : "gray" },
-		"h" : { "name" : "hills", "color" : "silver" },
-		"," : { "name" : "grass", "color" : "green" },
-		"s" : { "name" : "sand", "color" : "yellow" },
-		"~" : { "name" : "water", "color" : "blue" }
+		"terrain" : {
+			"M" : { "name" : "mountain", "color" : "gray" },
+			"h" : { "name" : "hills", "color" : "silver" },
+			"," : { "name" : "grass", "color" : "green" },
+			"s" : { "name" : "sand", "color" : "yellow" },
+			"~" : { "name" : "water", "color" : "blue" }
+		}
 	},
-	"tiles" : [
+	"terrain" : [
 		"MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
 		"MMMhhhhMMhhhhMhhhhhMMMMMMMMMMhhhhhhhhhhMMMhhhMMM",
 		"MMhhh,,hMMhhhhhh,hhhMMMMMMhhhhhhh,,,,,hhMhh,hhMM",
