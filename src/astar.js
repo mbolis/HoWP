@@ -1,3 +1,103 @@
+BinaryHeap = function BinaryHeap(nodes, comparator) {
+	if (arguments.length === 1 && typeof nodes === 'function') {
+		comparator = nodes;
+		nodes = undefined;
+	}
+	this._comparator = comparator || function(l, r) { return l <= r };
+	if (!nodes) {
+		this._nodes = [ undefined ];
+	} else {
+		nodes = this._nodes = [ undefined ].concat(nodes);
+		for (var i = nodes.length; i > 0; i--) {
+			this.downHeap(i);
+		}
+	}
+	P(this)
+		('sealed').get('size', function() { return this._nodes.length - 1 })
+		('sealed').get('isEmpty',function() { return this._nodes.length === 1 });
+}
+BinaryHeap.prototype.pop = function() {
+	var nodes = this._nodes;
+	var min = nodes[1];
+	if (min !== undefined) {
+		nodes[1] = nodes.pop();
+		this.downHeap(1);
+		return min;
+	}
+};
+BinaryHeap.prototype.push = function(node) {
+	var nodes = this._nodes;
+	var i = nodes.length;
+	nodes.push(node);
+	this.upHeap(i);
+};
+BinaryHeap.prototype.upscore = function(node) {
+	this.upHeap(this._nodes.indexOf(node));
+};
+BinaryHeap.prototype.upHeap = function(i) {
+	var nodes = this._nodes, len = nodes.length;
+	var compare = this._comparator;
+	while (i > 1) {
+		var ip = ~~(i / 2);
+		var curr = nodes[i], par = nodes[ip];
+		if (compare(par, curr)) {
+			break;
+		}
+		nodes[ip] = curr;
+		nodes[i] = par;
+		i = ip;
+	}
+};
+BinaryHeap.prototype.downHeap = function(i) {
+	var nodes = this._nodes, len = nodes.length;
+	var compare = this._comparator;
+	while (i < len) {
+		var il = i * 2, ir = il + 1;
+		var curr = nodes[i], left = nodes[il], right = nodes[ir];
+		if (ir >= len) {
+			if (il < len) {
+				if (compare(left, curr)) {
+					nodes[i] = left;
+					nodes[il] = curr;
+				}
+			}
+			break;
+		} else {
+			var min, imin;
+			if (compare(left, right)) {
+				min = left;
+				imin = il;
+			} else {
+				min = right;
+				imin = ir;
+			}
+
+			if (compare(curr, min)) {
+				break;
+			}
+			nodes[i] = min;
+			nodes[imin] = curr;
+			i = imin;
+		}
+	}
+}
+BinaryHeap.prototype.toString = function() {
+	var len = this._nodes.length;
+	while (len < 0 || (len & (len - 1))) len++;
+	var space = new Array(len).join(' ');
+	var buffer = '';
+	for (var i = 1, row = 1; i < this._nodes.length; i++, row--) {
+		if (row === 0) {
+			console.log(buffer);
+			buffer = '';
+			space = new Array(len / i).join(' ');
+			row = i;
+		}
+		var pad = String(this._nodes[i]).length, lpad = ~~(pad / 2), rpad = pad - lpad + 1;
+		buffer += space.substr(lpad) + this._nodes[i] + new Array(rpad).join(' ') + space;
+	}
+	console.log(buffer);
+}
 /**
  * Graph : a collection of graph implementations.
  *
