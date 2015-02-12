@@ -2,17 +2,21 @@
 	"name" : "new hope",
 	"palette" : {
 		"terrain" : {
-			"M" : { "name" : "mountain", "color" : "gray" },
-			"h" : { "name" : "hills", "color" : "silver" },
-			"," : { "name" : "grass", "color" : "green" },
-			"s" : { "name" : "sand", "color" : "yellow" },
-			"~" : { "name" : "water", "color" : "blue" }
+			"M" : { "name" : "mountain", "movement" : 1.5, "color" : "gray" },
+			"h" : { "name" : "hills", "movement" : 1.25, "color" : "silver" },
+			"," : { "name" : "grass", "movement" : 1, "color" : "green" },
+			"s" : { "name" : "sand", "movement" : 1.25, "color" : "yellow" },
+			"~" : { "name" : "water", "movement" : 10, "color" : "blue" },
+			"O" : { "name" : "cave", "movement" : 10, "color" : "black" }
 		}
 	},
+	"locations" : [
+		{ "name" : "hero start", "row" : 3, "col" : 3 }
+	],
 	"terrain" : [
 		"MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
 		"MMMhhhhMMhhhhMhhhhhMMMMMMMMMMhhhhhhhhhhMMMhhhMMM",
-		"MMhhh,,hMMhhhhhh,hhhMMMMMMhhhhhhh,,,,,hhMhh,hhMM",
+		"MMOhh,,hMMhhhhhh,hhhMMMMMMhhhhhhh,,,,,hhMhh,hhMM",
 		"Mhh,,,,hhMhhhh,,,,,hhMMMhhhh,,,,,,,,,hhMMh,,,hhM",
 		"hh,,,,,,hhMhh,,,,,,,hhMMMhh,,,,,,,,,hhhMhh,,,,hh",
 		"h,,,,,,,,hhh,,,,,,,,hhhMMhh,,,,,,,,,,hhhMh,,,,,h",

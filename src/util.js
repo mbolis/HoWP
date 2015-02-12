@@ -1,5 +1,5 @@
 var funargs = /^\s*function(?:\s+\w+)?\s*\(([^\)]*)\)/;
-function P(obj) {
+P = function P(obj) {
 	var opt = { enumerable : true, configurable : true, writable : true };
 
 	function cmd(mods) {
@@ -16,10 +16,10 @@ function P(obj) {
 			}
 			mods = ms;
 		}
-		for (var m of mods) {
-			if (m === 'hidden') {
+		for (var m in mods) {
+			if (mods[m] === 'hidden') {
 				opt.enumerable = false;
-			} else if (m === 'sealed') {
+			} else if (mods[m] === 'sealed') {
 				opt.configurable = false;
 			}
 		}
@@ -45,6 +45,17 @@ function P(obj) {
 		default:
 			opt.value = o;
 		}
+		Object.defineProperty(obj, prop, opt);
+		opt = { enumerable : true, configurable : true, writable : true };
+		return cmd;
+	};
+	cmd.get = function(prop, get) {
+		var pdesc = Object.getOwnPropertyDescriptor(obj, prop)
+		if (pdesc && !pdesc.configurable) {
+			return;
+		}
+		opt.get = get;
+		delete opt.writable;
 		Object.defineProperty(obj, prop, opt);
 		opt = { enumerable : true, configurable : true, writable : true };
 		return cmd;
@@ -190,13 +201,13 @@ Ajax = {
 				if (status < 400) {
 					try {
 						var map = JSON.parse(xhr.responseText);
-						if (typeof promise._success === 'function') {
-							promise._success(map);
-						}
 					} catch (err) {
 						if (typeof promise._error === 'function') {
 							promise._error(err);
 						}
+					}
+					if (typeof promise._success === 'function') {
+						promise._success(map);
 					}
 				} else {
 					if (typeof promise._error === 'function') {
@@ -212,3 +223,112 @@ Ajax = {
 	}
 }
 
+BinaryHeap = function BinaryHeap(nodes, comparator) {
+	if (arguments.length === 1 && typeof nodes === 'function') {
+		comparator = nodes;
+		nodes = undefined;
+	}
+	this._comparator = comparator || function(l, r) { return l <= r };
+	if (!nodes) {
+		this._nodes = [ undefined ];
+	} else {
+		nodes = this._nodes = [ undefined ].concat(nodes);
+		for (var i = nodes.length; i > 0; i--) {
+			this.downHeap(i);
+		}
+	}
+	Object.defineProperties(this, {
+		size : {
+			enumerable : true,
+			configurable : false,
+			get : function() { return this._nodes.length - 1 }
+		},
+		isEmpty : {
+			enumerable : true,
+			configurable : false,
+			get : function() { return this._nodes.length === 1 }
+		}
+	});
+}
+BinaryHeap.prototype.pop = function() {
+	var nodes = this._nodes;
+	var min = nodes[1];
+	if (min !== undefined) {
+		nodes[1] = nodes.pop();
+		this.downHeap(1);
+		return min;
+	}
+};
+BinaryHeap.prototype.push = function(node) {
+	var nodes = this._nodes;
+	var i = nodes.length;
+	nodes.push(node);
+	this.upHeap(i);
+};
+BinaryHeap.prototype.upscore = function(node) {
+	this.upHeap(this._nodes.indexOf(node));
+};
+BinaryHeap.prototype.upHeap = function(i) {
+	var nodes = this._nodes, len = nodes.length;
+	var compare = this._comparator;
+	while (i > 1) {
+		var ip = ~~(i / 2);
+		var curr = nodes[i], par = nodes[ip];
+		if (compare(par, curr)) {
+			break;
+		}
+		nodes[ip] = curr;
+		nodes[i] = par;
+		i = ip;
+	}
+};
+BinaryHeap.prototype.downHeap = function(i) {
+	var nodes = this._nodes, len = nodes.length;
+	var compare = this._comparator;
+	while (i < len) {
+		var il = i * 2, ir = il + 1;
+		var curr = nodes[i], left = nodes[il], right = nodes[ir];
+		if (ir >= len) {
+			if (il < len) {
+				if (compare(left, curr)) {
+					nodes[i] = left;
+					nodes[il] = curr;
+				}
+			}
+			break;
+		} else {
+			var min, imin;
+			if (compare(left, right)) {
+				min = left;
+				imin = il;
+			} else {
+				min = right;
+				imin = ir;
+			}
+
+			if (compare(curr, min)) {
+				break;
+			}
+			nodes[i] = min;
+			nodes[imin] = curr;
+			i = imin;
+		}
+	}
+}
+BinaryHeap.prototype.toString = function() {
+	var len = this._nodes.length;
+	while (len < 0 || (len & (len - 1))) len++;
+	var space = new Array(len).join(' ');
+	var buffer = '';
+	for (var i = 1, row = 1; i < this._nodes.length; i++, row--) {
+		if (row === 0) {
+			console.log(buffer);
+			buffer = '';
+			space = new Array(len / i).join(' ');
+			row = i;
+		}
+		var pad = String(this._nodes[i]).length, lpad = ~~(pad / 2), rpad = pad - lpad + 1;
+		buffer += space.substr(lpad) + this._nodes[i] + new Array(rpad).join(' ') + space;
+	}
+	console.log(buffer);
+}
