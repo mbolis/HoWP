@@ -315,7 +315,10 @@ Tiles = {
 			map = Tiles._maps[url];
 			success(map);
 		} else {
-			Ajax.get(url).success(function(mapData) {
+			Ajax.get(url).success(function(data) {
+
+				var mapData = data.json;
+				if (!mapData) return;
 
 				var palette = mapData.palette;
 				if (typeof palette === 'string') {
