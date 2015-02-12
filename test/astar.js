@@ -1,24 +1,39 @@
-/* BinaryHeap */
-test('BinaryHeap is present', function() {
-	ok(typeof BinaryHeap !== 'undefined', 'BinaryHeap constructor exists');
-});
+var should = require('chai').should();
 
-var maxHeap = function(l, r) { return l > r };
-test('BinaryHeap constructor', function() {
-	var heap1 = new BinaryHeap();
-	deepEqual(heap1._nodes, [undefined], 'Default constructor creates an empty heap');
+require('../src/util.js');
+require('../src/astar.js');
 
-	var heap2 = new BinaryHeap([1, 2, 3]);
-	deepEqual(heap2._nodes, [undefined, 1, 2, 3], 'Node array constructor creates a heap containing all nodes');
+describe('BinaryHeap', function() {
+	var maxHeap;
+	before(function() {
+		maxHeap = function(l, r) { return l > r };
+	})
 
-	var heap3 = new BinaryHeap(maxHeap);
-	equal(heap3._comparator, maxHeap, 'Comparator constructor creates a heap with given sorting');
-
-	var heap4 = new BinaryHeap([1, 2, 3], maxHeap);
-	deepEqual(heap4._nodes, [undefined, 3, 2, 1], 'Full constructor creates a heap containing all nodes, sorted');
-	equal(heap4._comparator, maxHeap, 'Full constructor creates a heap with given sorting');
-});
-
+	describe('constructor', function() {
+		it('should be defined', function() {
+			should.exist(BinaryHeap);
+		})
+		it('(void) should create an empty heap', function() {
+			var heap = new BinaryHeap();
+			heap._nodes.should.deep.equal( [undefined] );
+		})
+		it('(Array) should create a heap containing all nodes', function() {
+			var heap = new BinaryHeap([1, 2, 3]);
+			heap._nodes.should.deep.equal( [undefined, 1, 2, 3] );
+		})
+		it('(Function) should create an empty heap with given sorting', function() {
+			var heap = new BinaryHeap(maxHeap);
+			heap._nodes.should.deep.equal( [undefined] );
+			heap._comparator.should.equal( maxHeap );
+		})
+		it('(Array, Function) should create a heap containing all nodes, sorted', function() {
+			var heap = new BinaryHeap([1, 2, 3], maxHeap);
+			heap._nodes.should.deep.equal( [undefined, 3, 2, 1] );
+			heap._comparator.should.equal( maxHeap );
+		})
+	})
+})
+/*
 test('Heap properties', function() {
 	var nodes = new BinaryHeap([7, 4, 6, 2, 3, 1, 5, 9, 8, 0], maxHeap)._nodes;
 	var layersAreFull = nodes.slice(1).every(function(e) { return e !== undefined });
@@ -102,3 +117,4 @@ test('Operations : upscore' , function() {
 	}
 	ok(upscored1, 'Refreshed after upscoring full heap');
 });
+*/
